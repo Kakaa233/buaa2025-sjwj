@@ -1,0 +1,30 @@
+2.0问题形式化描述
+输入：类别 c ∈ {hazelnut, zipper} 的图像 x。
+目标：判定 x 是否异常 y ∈ {0: good, 1: bad}，并输出异常分数 s(x)（越大越异常）。
+数据：训练集含 good/bad；测试集标签来自 image_anomaly_labels.json。
+
+2.1处理图像特征
+使用冻结的 ResNet18 提取全局特征 f(x) ∈ R^D（去除全连接层，取 avgpool 后的向量）。
+对特征进行 StandardScaler 标准化（零均值单位方差）。
+采用 PCA 降维到 k（64/128 对比，最终选 128）以降噪并稳定后续协方差估计。
+异常检测模型与设计思想
+
+2.2完成异常检测模型，并简述你的设计思想
+基于高斯密度的监督式与一类式两种打分。
+two-class：分别拟合 good/bad 高斯（均值与协方差），分数 s = logp_bad - logp_good。
+one-class（最终默认）：仅拟合 good 高斯，分数 s = -logp_good，远离好类视为异常。
+设计思想：
+冻结预训练特征保证稳定；标准化+PCA减小噪声与尺度偏差；高斯密度简单可解释、阈值可控。
+实验比较发现 one-class 更稳健，尤其当坏类分布复杂且样本少时效果更优。
+图像分辨率按类别调优：hazelnut 用 256 提升对小孔与裂痕敏感；zipper 用 384 保留边缘与锯齿细节。
+
+2.3评估你的异常检测效果
+指标：AUROC、AP、BestF1、Acc；并计算 AUROC(-s) 诊断分数方向。
+最佳的配置与结果：
+hazelnut：one-class，image_size=256，PCA=128
+AUROC≈0.918，AP≈0.835，BestF1≈0.732，Acc≈0.800
+zipper：one-class，image_size=384，PCA=128
+AUROC≈0.792，AP≈0.762，BestF1≈0.714，Acc≈0.830
+切换为 one-class（仅拟合好类密度）+ 标准化 + PCA=128 显著提升效果。
+分辨率分类别调优有效：hazelnut 用 256 更敏感小孔/裂痕；zipper 用 384 更好保留边缘/锯齿细节。
+滑窗/ROI 在当前特征与聚合下无收益

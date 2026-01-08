@@ -35,7 +35,12 @@ DM_2025_Dataset/
     Cluster/                 
     Image_Anomaly_Detection/
     thyroid/                  
+task2/
+...
 ```
 ### 运行任务
 
-打开对应任务的ipynb文件，逐个运行代码单元。
+任务一： 运行 `image_clustering.ipynb` 
+任务二： 运行task2目录下`train_eval.py`,支持命令行参数配置
+任务三： 运行 `weather_forecasting.ipynb`
+任务四： 运行 `thyroid_disease_detection.ipynb`
